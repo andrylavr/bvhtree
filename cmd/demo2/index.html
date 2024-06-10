@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>bvh-tree demo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="index.css">
+</head>
+
+<body>
+
+<div id="loading-wrapper">
+    <div class="loading"></div>
+    <div class="loading-text">Loading mesh&#8230;</div>
+</div>
+
+<script src="three.js"></script>
+<script src="OBJLoader.js"></script>
+<script src="OrbitControls.js"></script>
+
+<script src="app.js"></script>
+
+<script src="wasm_exec.js"></script>
+<script>
+    window.onload = function () {
+        (async () => {
+            const resp = await fetch("main.wasm");
+            if (!resp.ok) {
+                const pre = document.createElement('pre');
+                pre.innerText = await resp.text();
+                document.body.appendChild(pre);
+            } else {
+                const src = await resp.arrayBuffer();
+                const go = new Go();
+                const result = await WebAssembly.instantiate(src, go.importObject);
+                go.argv = ["/main.wasm"];
+                go.env = {};
+                go.run(result.instance);
+
+                init();
+                animate();
+            }
+            const reload = await fetch('_wait');
+            // The server sends a response for '_wait' when a request is sent to '_notify'.
+            if (reload.ok) {
+                location.reload();
+            }
+        })();
+    }
+</script>
+
+</body>
+</html>

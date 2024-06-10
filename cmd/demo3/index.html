@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complex Geometry Raycasting</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <style type="text/css">
+        html, body {
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<script type="importmap">
+   {
+    "imports": {
+      "stats.js": "./lib/Stats.js",
+      "three": "./lib/three.module.js",
+      "three-mesh-bvh": "./three-mesh-bvh.js",
+      "three/": "https://www.unpkg.com/three/"
+    }
+  }
+</script>
+
+<script>
+    function init(){
+        const script = document.createElement('script');
+        script.type = "module";
+        script.src = "./raycast.js";
+        document.body.appendChild(script);
+    }
+</script>
+
+<script src="wasm_exec.js"></script>
+<script>
+    window.onload = function () {
+        (async () => {
+            const resp = await fetch("main.wasm");
+            if (!resp.ok) {
+                const pre = document.createElement('pre');
+                pre.innerText = await resp.text();
+                document.body.appendChild(pre);
+            } else {
+                const src = await resp.arrayBuffer();
+                const go = new Go();
+                const result = await WebAssembly.instantiate(src, go.importObject);
+                go.argv = ["/main.wasm"];
+                go.env = {};
+                go.run(result.instance);
+
+                init();
+            }
+            const reload = await fetch('_wait');
+            // The server sends a response for '_wait' when a request is sent to '_notify'.
+            if (reload.ok) {
+                location.reload();
+            }
+        })();
+    }
+</script>
+
+<!--<script type="module" src="./raycast.js"></script>-->
+</body>
+</html>
